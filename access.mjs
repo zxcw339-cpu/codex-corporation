@@ -92,6 +92,7 @@ async function showRecord(user) {
     await loadMasterTeam();
   }
   feedback('');
+  if (new URLSearchParams(location.search).get('destino') === 'cofre') location.replace('cofre.html');
 }
 
 async function loadMasterTeam() {
