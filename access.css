@@ -1,0 +1,23 @@
+.access-fields[hidden],.agent-record[hidden],#access-feedback[hidden]{display:none}
+.access-fields input{font-size:16px;color:#f1f0eb;border-color:#b49aca66}
+.access-fields input:focus{outline:2px solid #c3afe8;outline-offset:2px}
+.access-fields input[aria-invalid=true]{border-color:#efaea8}
+.password-field{position:relative}.password-field input{padding-right:88px}
+.password-reveal{position:absolute;right:1px;top:1px;min-width:80px;min-height:46px;padding:8px;border:0;background:transparent;color:#c3afe8;font-size:12px;cursor:pointer}
+.access-fields .access-pending{background:#c3afe8;color:#161222;font-size:14px;min-height:52px;cursor:pointer;transition:background .15s}
+.access-fields .access-pending:hover:not(:disabled){background:#d2c0f0}
+.access-fields .access-pending:disabled{opacity:.55;cursor:wait}
+.access-pending svg{stroke:currentColor}
+#access-feedback{font-size:14px;line-height:1.65;margin:18px 0 0;padding:13px 15px;border-left:2px solid #c3afe8;background:#181422;color:#d6cce3;overflow-wrap:anywhere}
+#access-feedback.error{border-color:#efaea8;color:#f2bfbb}
+.access-protocol{display:inline-flex;color:#c3afe8;font-size:13px;line-height:1.5;padding-block:12px;min-height:44px;text-underline-offset:4px}
+.record-greeting{font-size:17px;line-height:1.6;color:#d5e6de;margin:20px 0}
+.agent-record dl{margin:24px 0}.agent-record dl>div{padding:14px 0;border-bottom:1px solid #a98fca30}
+.agent-record dt{color:#b5a9c4;font-size:11px;margin-bottom:7px}.agent-record dd{margin:0;color:#f1f0eb;font-size:14px;line-height:1.7;overflow-wrap:anywhere}
+.record-project{display:flex;gap:10px;align-items:center;color:#a8d8c8;font-size:12px}.record-project::before{content:'';width:6px;height:6px;background:#a8d8c8;border-radius:50%}
+.archive-waiting{padding:18px 0}.archive-waiting h3{font-size:15px;font-weight:500;margin:0 0 12px;color:#e8deef}.archive-waiting p{font-size:13px;line-height:1.8;color:#aaa0b9;margin:0}
+.record-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:20px}.record-actions a,.record-actions button{min-height:44px;padding:12px 0;font-family:inherit;font-size:12px;line-height:1.5;color:#c3afe8}
+.record-actions button{border:0;background:none;margin-left:auto;text-decoration:underline;text-underline-offset:4px;cursor:pointer}
+.record-actions button:disabled{opacity:.5}
+.access-fields button:focus-visible,.agent-record button:focus-visible,.password-reveal:focus-visible,.access-protocol:focus-visible{outline:2px solid #a8d8c8;outline-offset:4px}
+@media(max-width:600px){.agent-record dd{font-size:15px}.record-greeting{font-size:18px}.access-panel{scroll-margin-top:20px}}
