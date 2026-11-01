@@ -9,6 +9,12 @@ const record = document.getElementById('agent-record');
 const title = document.getElementById('access-title');
 const description = document.getElementById('access-notice');
 const logout = document.getElementById('agent-logout');
+const loginLayout = document.getElementById('login-layout');
+const centelhaForm = document.getElementById('centelha-form');
+const centelhaInput = document.getElementById('centelha-code');
+const centelhaSubmit = document.getElementById('centelha-submit');
+const centelhaNotice = document.getElementById('centelha-feedback');
+let recordUser = null;
 const config = window.CODEX_ACCESS;
 const memory = new Map();
 const storage = {
@@ -22,8 +28,13 @@ const feedback = (text, error = false) => {
   notice.classList.toggle('error', error);
 };
 const showLogin = () => {
+  recordUser = null;
+  loginLayout.hidden = false;
+  document.querySelector('.mobile-jump').hidden = false;
   form.hidden = false;
   record.hidden = true;
+  document.getElementById('paradox-archive').hidden = true;
+  centelhaForm.reset();
   title.textContent = 'Acesso de agenciado';
   description.textContent = 'Consulte o documento recebido para localizar seu registro e sua senha.';
 };
@@ -32,20 +43,89 @@ let busy = false;
 const failProfile = () => { throw new Error('PROFILE_UNAVAILABLE'); };
 
 async function showRecord(user) {
-  const { data, error } = await client.from('agent_profiles')
-    .select('player_name,registry,centelha_position,project_name').eq('id',user.id).single();
-  if (error || !data) failProfile();
+  const [profile, progress] = await Promise.all([
+    client.from('agent_profiles').select('player_name,registry,centelha_position,project_name').eq('id',user.id).single(),
+    client.from('agent_progress').select('centelha_verified_at').eq('id',user.id).maybeSingle()
+  ]);
+  const {data,error} = profile;
+  if (error || !data || progress.error) failProfile();
+  recordUser = user.id;
   document.getElementById('record-name').textContent = data.player_name;
+  document.getElementById('pass-name').textContent = data.player_name;
+  document.getElementById('record-monogram').textContent = data.player_name.slice(0,1).toUpperCase();
+  document.getElementById('record-badge').textContent = 'CC / EG / ' + String(data.centelha_position).padStart(2,'0');
   document.getElementById('record-registry').textContent = data.registry;
   document.getElementById('record-project').textContent = data.project_name;
   document.getElementById('record-position').textContent = String(data.centelha_position).padStart(2,'0') + ' / 09';
   form.hidden = true;
+  loginLayout.hidden = true;
+  document.querySelector('.mobile-jump').hidden = true;
   record.hidden = false;
   title.textContent = 'Registro reconhecido.';
   description.textContent = 'Sua identificação foi conferida. Preserve os documentos de origem.';
   password.value = '';
+  password.type = 'password';
+  document.getElementById('password-reveal').textContent = 'Mostrar';
+  document.getElementById('password-reveal').setAttribute('aria-pressed','false');
+  document.getElementById('password-reveal').setAttribute('aria-label','Mostrar senha');
+  showTransmission(Boolean(progress.data));
   feedback('');
 }
+
+function showTransmission(verified, reveal = false) {
+  document.getElementById('transmission-panel').hidden = verified;
+  document.getElementById('centelha-complete').hidden = !verified;
+  const archive = document.getElementById('paradox-archive');
+  archive.hidden = !verified;
+  archive.classList.toggle('just-recovered', reveal);
+  document.getElementById('transmission-stage').classList.toggle('stage-complete', verified);
+  document.getElementById('transmission-stage').toggleAttribute('aria-current', !verified);
+  if (!verified) document.getElementById('transmission-stage').setAttribute('aria-current','step');
+  document.getElementById('archive-stage').toggleAttribute('aria-current', verified);
+  if (verified) document.getElementById('archive-stage').setAttribute('aria-current','step');
+  document.getElementById('transmission-label').textContent = verified ? 'Assinatura reconhecida' : 'Aguardando recomposição';
+  document.getElementById('archive-label').textContent = verified ? 'Em paradoxo' : 'Acesso pendente';
+  centelhaNotice.hidden = true;
+  centelhaInput.value = '';
+  if (reveal) {
+    document.getElementById('paradox-title').focus({preventScroll:true});
+    archive.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'center'});
+  }
+}
+
+let verifying = false;
+centelhaInput.addEventListener('input',()=>centelhaInput.removeAttribute('aria-invalid'));
+centelhaForm.addEventListener('submit',async event=>{
+  event.preventDefault();
+  if (verifying || !client || !recordUser) return;
+  verifying = true;
+  const submittingUser = recordUser;
+  centelhaSubmit.disabled = true;
+  centelhaSubmit.firstChild.textContent = 'Conferindo sinal…';
+  centelhaForm.setAttribute('aria-busy','true');
+  centelhaNotice.hidden = true;
+  try {
+    const {data,error} = await client.rpc('verify_centelha',{p_code:centelhaInput.value.normalize('NFKC')});
+    if (submittingUser !== recordUser) return;
+    if (error) throw error;
+    if (data === true) showTransmission(true,true);
+    else {
+      centelhaNotice.textContent = 'A sequência não corresponde à transmissão. Confira todos os vestígios, a ordem e os sinais preservados.';
+      centelhaNotice.hidden = false;
+      centelhaInput.setAttribute('aria-invalid','true');
+      centelhaInput.focus();
+    }
+  } catch {
+    if (submittingUser !== recordUser) return;
+    centelhaNotice.textContent = 'Não foi possível conferir a transmissão. Seu registro está preservado; tente novamente em instantes.';
+    centelhaNotice.hidden = false;
+  } finally {
+    verifying = false;
+    centelhaSubmit.disabled = false;
+    centelhaSubmit.firstChild.textContent = 'Validar transmissão ';
+    centelhaForm.removeAttribute('aria-busy');
+  }
+});
 
 document.getElementById('password-reveal').addEventListener('click', (event) => {
   const reveal = password.type === 'password';
@@ -74,7 +154,7 @@ form.addEventListener('submit', async event => {
     if (error) throw error;
     if (!data.user) throw new Error('NO_USER');
     await showRecord(data.user);
-    title.setAttribute('tabindex','-1');title.focus({preventScroll:true});
+    document.getElementById('staff-title').focus({preventScroll:true});
   } catch (error) {
     showLogin();
     if (error.status === 429) feedback('Muitas tentativas em pouco tempo. Aguarde um momento antes de conferir novamente.',true);
@@ -102,6 +182,9 @@ try {
   client = window.supabase.createClient(config.url,config.publishableKey,{
     auth:{storage,persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,storageKey:'codex-agent-session-v1'},
     global:{fetch:(url, options={}) => fetch(url,{...options,signal:options.signal ?? AbortSignal.timeout(15000)})}
+  });
+  client.auth.onAuthStateChange(event=>{
+    if (event === 'SIGNED_OUT') { showLogin();password.value = ''; }
   });
   login.disabled = false;password.disabled = false;
   const {data:{session}} = await client.auth.getSession();
