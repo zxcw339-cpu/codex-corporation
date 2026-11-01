@@ -14,7 +14,12 @@ const centelhaForm = document.getElementById('centelha-form');
 const centelhaInput = document.getElementById('centelha-code');
 const centelhaSubmit = document.getElementById('centelha-submit');
 const centelhaNotice = document.getElementById('centelha-feedback');
+const masterPanel = document.getElementById('master-panel');
+const masterTeam = document.getElementById('master-team');
+const masterFeedback = document.getElementById('master-feedback');
+const masterRefresh = document.getElementById('master-refresh');
 let recordUser = null;
+let isMaster = false;
 const config = window.CODEX_ACCESS;
 const memory = new Map();
 const storage = {
@@ -29,6 +34,10 @@ const feedback = (text, error = false) => {
 };
 const showLogin = () => {
   recordUser = null;
+  isMaster = false;
+  masterPanel.hidden = true;
+  masterTeam.replaceChildren();
+  document.querySelector('.staff-stages').hidden = false;
   loginLayout.hidden = false;
   document.querySelector('.mobile-jump').hidden = false;
   form.hidden = false;
@@ -44,19 +53,24 @@ const failProfile = () => { throw new Error('PROFILE_UNAVAILABLE'); };
 
 async function showRecord(user) {
   const [profile, progress] = await Promise.all([
-    client.from('agent_profiles').select('player_name,registry,centelha_position,project_name').eq('id',user.id).single(),
+    client.from('agent_profiles').select('player_name,registry,centelha_position,project_name,role').eq('id',user.id).single(),
     client.from('agent_progress').select('centelha_verified_at').eq('id',user.id).maybeSingle()
   ]);
   const {data,error} = profile;
   if (error || !data || progress.error) failProfile();
   recordUser = user.id;
+  isMaster = data.role === 'mestre' && user.app_metadata?.codex_role === 'mestre';
   document.getElementById('record-name').textContent = data.player_name;
   document.getElementById('pass-name').textContent = data.player_name;
   document.getElementById('record-monogram').textContent = data.player_name.slice(0,1).toUpperCase();
-  document.getElementById('record-badge').textContent = 'CC / EG / ' + String(data.centelha_position).padStart(2,'0');
+  document.getElementById('record-badge').textContent = isMaster ? 'CC / T.E.M.P. / MESTRE' : 'CC / EG / ' + String(data.centelha_position).padStart(2,'0');
   document.getElementById('record-registry').textContent = data.registry;
   document.getElementById('record-project').textContent = data.project_name;
-  document.getElementById('record-position').textContent = String(data.centelha_position).padStart(2,'0') + ' / 09';
+  document.getElementById('record-position').textContent = isMaster ? 'Mestre' : String(data.centelha_position).padStart(2,'0') + ' / 09';
+  document.getElementById('record-position-label').textContent = isMaster ? 'Função' : 'Posição na transmissão';
+  document.getElementById('record-assignment').textContent = isMaster ? 'Direção / Mediação' : 'Projetos / Campo';
+  document.getElementById('staff-overline').textContent = isMaster ? 'Portal do mestre' : 'Portal do agenciado';
+  document.getElementById('pass-caption').textContent = isMaster ? 'Credencial de mestre' : 'Credencial de agenciamento';
   form.hidden = true;
   loginLayout.hidden = true;
   document.querySelector('.mobile-jump').hidden = true;
@@ -69,8 +83,50 @@ async function showRecord(user) {
   document.getElementById('password-reveal').setAttribute('aria-pressed','false');
   document.getElementById('password-reveal').setAttribute('aria-label','Mostrar senha');
   showTransmission(Boolean(progress.data));
+  masterPanel.hidden = !isMaster;
+  document.querySelector('.staff-stages').hidden = isMaster;
+  if (isMaster) {
+    document.getElementById('transmission-panel').hidden = true;
+    document.getElementById('centelha-complete').hidden = true;
+    document.getElementById('paradox-archive').hidden = true;
+    await loadMasterTeam();
+  }
   feedback('');
 }
+
+async function loadMasterTeam() {
+  if (!isMaster || !recordUser) return;
+  const currentUser = recordUser;
+  masterRefresh.disabled = true;
+  masterFeedback.textContent = 'Conferindo os registros da equipe…';
+  try {
+    const [profiles, progress] = await Promise.all([
+      client.from('agent_profiles').select('id,player_name,centelha_position').eq('role','agenciado').order('centelha_position'),
+      client.from('agent_progress').select('id,centelha_verified_at')
+    ]);
+    if (profiles.error || progress.error) throw new Error('TEAM_UNAVAILABLE');
+    if (currentUser !== recordUser || !isMaster) return;
+    const verified = new Set(progress.data.map(row => row.id));
+    const rows = profiles.data.map(profile => {
+      const item = document.createElement('li');
+      const identity = document.createElement('div');
+      const name = document.createElement('strong');name.textContent = profile.player_name;
+      const position = document.createElement('small');position.textContent = 'Agenciamento ' + String(profile.centelha_position).padStart(2,'0');
+      const status = document.createElement('span');
+      status.textContent = verified.has(profile.id) ? 'Transmissão validada' : 'Aguardando transmissão';
+      status.className = verified.has(profile.id) ? 'team-status verified' : 'team-status';
+      identity.append(name,position);item.append(identity,status);return item;
+    });
+    masterTeam.replaceChildren(...rows);
+    const count = profiles.data.filter(profile => verified.has(profile.id)).length;
+    document.getElementById('master-count').textContent = count + ' / ' + profiles.data.length;
+    masterFeedback.textContent = 'Registros atualizados. O cofre de documentos permanece em paradoxo.';
+  } catch {
+    if (currentUser === recordUser) masterFeedback.textContent = 'Não foi possível atualizar a equipe. Tente novamente em instantes.';
+  } finally { masterRefresh.disabled = false; }
+}
+
+masterRefresh.addEventListener('click',loadMasterTeam);
 
 function showTransmission(verified, reveal = false) {
   document.getElementById('transmission-panel').hidden = verified;

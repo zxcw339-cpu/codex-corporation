@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="pt-BR">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#0b0b12"><meta name="description" content="Orientações para o agenciamento nos projetos da Codex Corporation."><title>Acesso de agenciado — Codex Corporation</title><link rel="icon" type="image/png" href="assets/codex-icon.png"><link rel="preload" href="assets/sora.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="styles-v2.css"><link rel="stylesheet" href="mobile-v2.css?v=2"><script src="app-v2.js?v=4" defer></script><link rel="stylesheet" href="access.css?v=3"><script src="assets/supabase-js-2.118.0.js" defer></script><script src="access-config.js" defer></script><script type="module" src="access.mjs?v=3"></script></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#0b0b12"><meta name="description" content="Orientações para o agenciamento nos projetos da Codex Corporation."><title>Acesso de agenciado — Codex Corporation</title><link rel="icon" type="image/png" href="assets/codex-icon.png"><link rel="preload" href="assets/sora.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="styles-v2.css"><link rel="stylesheet" href="mobile-v2.css?v=2"><script src="app-v2.js?v=4" defer></script><link rel="stylesheet" href="access.css?v=4"><script src="assets/supabase-js-2.118.0.js" defer></script><script src="access-config.js" defer></script><script type="module" src="access.mjs?v=4"></script></head>
 <body>
   <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
   <header class="site-header"><div class="header-inner"><a class="brand" href="index.html" aria-label="Codex Corporation, início"><img src="assets/codex-mark-192.webp" alt="" width="48" height="48"><span>Codex<span class="brand-sub">Corporation</span></span></a><nav class="desktop-nav" aria-label="Navegação principal"><a href="index.html#institucional">Institucional</a><a href="index.html#atuacao">Serviços T.E.M.P.</a><a href="projetos.html">Projetos</a></nav><a aria-label="Acesso de agenciado" class="access-link" href="agenciados.html" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4"/></svg><span class="access-full">Acesso de agenciado</span><span class="access-short" aria-hidden="true">Agenciado</span></a><button class="motion-toggle" type="button" aria-label="Pausar animações" aria-pressed="false" title="Pausar animações"><svg viewBox="0 0 20 20" aria-hidden="true"><path class="pause-glyph" d="M7 5v10M13 5v10"/><path class="play-glyph" d="m7 5 8 5-8 5Z"/></svg></button><button class="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="mobile-nav"><span></span><span></span></button></div><nav id="mobile-nav" class="mobile-nav" aria-label="Navegação móvel" hidden><a href="index.html#institucional">Institucional</a><a href="index.html#atuacao">Serviços T.E.M.P.</a><a href="projetos.html">Projetos</a><a href="agenciados.html" aria-current="page">Acesso de agenciado</a><button class="menu-motion" type="button" aria-label="Pausar animações" aria-pressed="false" title="Pausar animações"><svg viewBox="0 0 20 20" aria-hidden="true"><path class="pause-glyph" d="M7 5v10M13 5v10"/><path class="play-glyph" d="m7 5 8 5-8 5Z"/></svg><span class="motion-label">Pausar animações</span></button></nav></header>
@@ -11,20 +11,27 @@
 
     <section id="agent-record" class="staff-portal" aria-labelledby="staff-title" hidden>
       <header class="staff-heading">
-        <div><p class="staff-overline">Portal do agenciado</p><h1 id="staff-title" tabindex="-1">Bom retorno, <span id="record-name"></span>.</h1><p>Seu posto na Codex Corporation está ativo.</p></div>
+        <div><p id="staff-overline" class="staff-overline">Portal do agenciado</p><h1 id="staff-title" tabindex="-1">Bom retorno, <span id="record-name"></span>.</h1><p>Seu posto na Codex Corporation está ativo.</p></div>
         <button id="agent-logout" type="button" class="staff-logout">Encerrar sessão <span aria-hidden="true">↗</span></button>
       </header>
       <div class="staff-workspace">
         <aside class="staff-pass" aria-label="Credencial de funcionário">
           <div class="pass-brand"><img src="assets/codex-mark-192.webp" alt="" width="32" height="32"><span>Codex Corporation<small>Serviços T.E.M.P.</small></span></div>
           <div class="pass-portrait" aria-hidden="true"><div class="pass-seal"></div><span id="record-monogram"></span><img src="assets/codex-mark-512.webp" alt="" width="160" height="160"></div>
-          <p class="pass-caption">Credencial de agenciamento</p><strong id="pass-name" class="pass-name"></strong><p id="record-badge" class="pass-number"></p>
+          <p id="pass-caption" class="pass-caption">Credencial de agenciamento</p><strong id="pass-name" class="pass-name"></strong><p id="record-badge" class="pass-number"></p>
           <span class="staff-active"><i aria-hidden="true"></i>Vínculo ativo</span>
-          <dl class="pass-data"><div><dt>Lotação</dt><dd>Projetos / Campo</dd></div><div><dt>Projeto vinculado</dt><dd id="record-project"></dd></div><div><dt>Posição na transmissão</dt><dd id="record-position"></dd></div></dl>
+          <dl class="pass-data"><div><dt>Lotação</dt><dd id="record-assignment">Projetos / Campo</dd></div><div><dt>Projeto vinculado</dt><dd id="record-project"></dd></div><div><dt id="record-position-label">Posição na transmissão</dt><dd id="record-position"></dd></div></dl>
           <details class="registry-details"><summary>Consultar registro de acesso</summary><p id="record-registry"></p></details>
           <div class="pass-bottom"><span aria-hidden="true" class="pass-bars"></span><span>Uso individual</span></div>
         </aside>
         <div class="staff-desk">
+          <section id="master-panel" class="master-panel" aria-labelledby="master-title" hidden>
+            <p class="staff-overline">Direção do projeto / Acesso reservado</p>
+            <div class="master-heading"><h2 id="master-title">Mesa de mediação.</h2><span class="master-count"><strong id="master-count">—</strong><small>transmissões validadas</small></span></div>
+            <p class="master-copy">Acompanhe os agenciados vinculados a Eclipse Genético.</p>
+            <ul id="master-team" class="master-team" aria-label="Equipe de agenciados"></ul>
+            <div class="master-footer"><p id="master-feedback" role="status" aria-live="polite"></p><button id="master-refresh" type="button" class="staff-logout">Atualizar registros <span aria-hidden="true">↻</span></button></div>
+          </section>
           <ol class="staff-stages" aria-label="Situação do acesso"><li class="stage-complete"><span aria-hidden="true">✓</span><div>Registro<small>Identificação conferida</small></div></li><li id="transmission-stage" aria-current="step"><span aria-hidden="true">02</span><div>Transmissão<small id="transmission-label">Aguardando recomposição</small></div></li><li id="archive-stage"><span aria-hidden="true">03</span><div>Arquivo<small id="archive-label">Acesso pendente</small></div></li></ol>
           <section id="transmission-panel" class="transmission-panel" aria-labelledby="transmission-title">
             <div class="transmission-heading"><span class="signal-mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><p>Canal de origem / 09 vestígios</p></div>
